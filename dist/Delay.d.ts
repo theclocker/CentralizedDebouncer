@@ -24,6 +24,14 @@ export declare class Delay {
      */
     static purge(id: number, clearTimeout?: boolean): void;
     /**
+     * Use to register an event that will fire all callbacks when the page blurs / unloads
+     */
+    static registerCallStackOnPageBlur(): void;
+    /**
+     * Remove the events that will trigger when the page unloads / blurs
+     */
+    static removeCallStackOnPageExit(): void;
+    /**
      * Overrides an existing operation's callback function and delay, and notifies subscribers
      * @param func A new callback function for th opeartion
      * @param milsDelay A new delay for the operation
@@ -46,24 +54,16 @@ export declare class Delay {
      */
     private static createTimeout;
     /**
-     * Use to register an event that will fire all callbacks when the page blurs / unloads
-     */
-    static registerCallStackOnPageBlur(): void;
-    /**
-     * Remove the events that will trigger when the page unloads / blurs
-     */
-    static removeCallStackOnPageExit(): void;
-    /**
-     * Creates a unique identifier for debounce calls
-     * @returns A "unique" identifier for the debounce calls
-     */
-    private static createRandomIdentifier;
-    /**
      * Create / Remove event listeners used when the page unloads / blurs
      * @param remove boolean indicating whether or not this functions removes or adds the event listeners
      * @returns
      */
     private static unloadCallsEvent;
+    /**
+     * Creates a unique identifier for debounce calls
+     * @returns A "unique" identifier for the debounce calls
+     */
+    private static createRandomIdentifier;
     /**
      * Call all of the functions in the map
      */

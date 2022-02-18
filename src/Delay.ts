@@ -60,6 +60,20 @@ export class Delay {
     }
 
     /**
+     * Use to register an event that will fire all callbacks when the page blurs / unloads
+     */
+    public static registerCallStackOnPageBlur(): void {
+        this.unloadCallsEvent(false);
+    }
+
+    /**
+     * Remove the events that will trigger when the page unloads / blurs
+     */
+    public static removeCallStackOnPageExit() {
+        this.unloadCallsEvent(true);
+    }
+
+    /**
      * Overrides an existing operation's callback function and delay, and notifies subscribers
      * @param func A new callback function for th opeartion
      * @param milsDelay A new delay for the operation
@@ -93,32 +107,11 @@ export class Delay {
                 func();
                 this.purge(id);
             } catch(e) {
+                console.error(e);
                 this.purge(id);
                 throw e;
             }
         }, milsDelay);
-    }
-
-    /**
-     * Use to register an event that will fire all callbacks when the page blurs / unloads
-     */
-    public static registerCallStackOnPageBlur(): void {
-        this.unloadCallsEvent(false);
-    }
-
-    /**
-     * Remove the events that will trigger when the page unloads / blurs
-     */
-    public static removeCallStackOnPageExit() {
-        this.unloadCallsEvent(true);
-    }
-
-    /**
-     * Creates a unique identifier for debounce calls
-     * @returns A "unique" identifier for the debounce calls
-     */
-    private static createRandomIdentifier(): number {
-        return Math.round(Math.random() * 10000); // Random number up to 10000, should be enough... should probably replace
     }
 
     /**
@@ -135,6 +128,14 @@ export class Delay {
         // NOTE: This will fire if you focus the developer console
         window.addEventListener('beforeunload', () => this.unloadProcedure());
         window.addEventListener('blur', () => this.unloadProcedure());
+    }
+
+    /**
+     * Creates a unique identifier for debounce calls
+     * @returns A "unique" identifier for the debounce calls
+     */
+    private static createRandomIdentifier(): number {
+        return Math.round(Math.random() * 10000); // Random number up to 10000, should be enough... should probably replace
     }
 
     /**

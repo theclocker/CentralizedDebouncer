@@ -57,6 +57,18 @@ var Delay = /** @class */ (function () {
         this.functions.delete(id);
     };
     /**
+     * Use to register an event that will fire all callbacks when the page blurs / unloads
+     */
+    Delay.registerCallStackOnPageBlur = function () {
+        this.unloadCallsEvent(false);
+    };
+    /**
+     * Remove the events that will trigger when the page unloads / blurs
+     */
+    Delay.removeCallStackOnPageExit = function () {
+        this.unloadCallsEvent(true);
+    };
+    /**
      * Overrides an existing operation's callback function and delay, and notifies subscribers
      * @param func A new callback function for th opeartion
      * @param milsDelay A new delay for the operation
@@ -90,29 +102,11 @@ var Delay = /** @class */ (function () {
                 _this.purge(id);
             }
             catch (e) {
+                console.error(e);
                 _this.purge(id);
                 throw e;
             }
         }, milsDelay);
-    };
-    /**
-     * Use to register an event that will fire all callbacks when the page blurs / unloads
-     */
-    Delay.registerCallStackOnPageBlur = function () {
-        this.unloadCallsEvent(false);
-    };
-    /**
-     * Remove the events that will trigger when the page unloads / blurs
-     */
-    Delay.removeCallStackOnPageExit = function () {
-        this.unloadCallsEvent(true);
-    };
-    /**
-     * Creates a unique identifier for debounce calls
-     * @returns A "unique" identifier for the debounce calls
-     */
-    Delay.createRandomIdentifier = function () {
-        return Math.round(Math.random() * 10000); // Random number up to 10000, should be enough... should probably replace
     };
     /**
      * Create / Remove event listeners used when the page unloads / blurs
@@ -130,6 +124,13 @@ var Delay = /** @class */ (function () {
         // NOTE: This will fire if you focus the developer console
         window.addEventListener('beforeunload', function () { return _this.unloadProcedure(); });
         window.addEventListener('blur', function () { return _this.unloadProcedure(); });
+    };
+    /**
+     * Creates a unique identifier for debounce calls
+     * @returns A "unique" identifier for the debounce calls
+     */
+    Delay.createRandomIdentifier = function () {
+        return Math.round(Math.random() * 10000); // Random number up to 10000, should be enough... should probably replace
     };
     /**
      * Call all of the functions in the map
