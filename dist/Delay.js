@@ -22,7 +22,7 @@ var Delay = /** @class */ (function () {
         else
             id = this.createRandomIdentifier(); // If the id does not exist, create it
         // If the override listener does not exist (first call) create it
-        if (!this.overrideListeners.has(id)) {
+        if (!this.functions.has(id)) {
             this.onOverride(function (overrideFunc, overrideMilsDelay) {
                 // Set the function to the new function
                 _this.functions.set(id, overrideFunc);
