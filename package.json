@@ -1,0 +1,17 @@
+{
+  "name": "centralizeddebouncer",
+  "version": "1.0.0",
+  "description": "A centralized debouncer for any application written in TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theclocker/CentralizedDebouncer.git"
+  },
+  "author": "Jonathan Vega",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/theclocker/CentralizedDebouncer/issues"
+  },
+  "homepage": "https://github.com/theclocker/CentralizedDebouncer#readme"
+}
