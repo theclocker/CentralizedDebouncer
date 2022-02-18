@@ -12,12 +12,13 @@ class Delay {
     private static overrideListeners: Map<number, (func: callFunc<any>, milsDelay: number) => any> = new Map();
 
     /**
-     * A bulkified debouncer for calls that aggregates function calls for when a window is blurred / closing
+     * A bulkified debouncer for calls
+     * All operations are aggregated for when you need 
      * 
      * @param func the function to call after the timeout
      * @param milsDelay the delay for the timeout
      * @param registerId a unique identifer for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
-     * @returns an array with a promise to 
+     * @returns An object holding the promise created, a re-usable function for the same operation and the id created for the operation
      */
     public static callOnceReleased<T>(func: callFunc<T>, milsDelay: number, registerId?: number): {promise: Promise<any>, delay: (func: callFunc<T>, milsDelay: number) => ReuseCall<T>, id?: number} {
         let id = registerId;
@@ -48,6 +49,22 @@ class Delay {
             this.promises.set(id, promise);
         }
         return {promise, delay: ((func: (...args: any) => T, milsDelay: number) => this.callOnceReleased(func, milsDelay, id)).bind(id), id};
+    }
+
+    /**
+     * Remove the operation, and cancel it if you wish
+     * @param id The id of the operation to cancel
+     * @param clearTimeout Should clear timeout
+     */
+    public static purge(id: number, clearTimeout: boolean = true) {
+        // Remove all of the nodes for this request
+        if (clearTimeout) {
+            window.clearTimeout(this.timeouts.get(id));
+        }
+        this.promises.delete(id);
+        this.timeouts.delete(id);
+        this.overrideListeners.delete(id);
+        this.functions.delete(id);
     }
 
     /**
@@ -87,11 +104,7 @@ class Delay {
             } catch(e) {
                 reject(e);
             }
-            // Remove all of the nodes for this request
-            this.promises.delete(id);
-            this.timeouts.delete(id);
-            this.overrideListeners.delete(id);
-            this.functions.delete(id);
+            this.purge(id);
         }, milsDelay);
     }
 
