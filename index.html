@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delayed</title>
+    <script src="./dist/Delay.js"></script>
+</head>
+<body>
+    <h1>Example</h1>
+    <script>
+        let numberOfDelays = 0;
+        let promise, delay, id;
+        function onInputChange(value) {
+            ({promise, delay, id} = Delay.callOnceReleased(notifyDone.bind(this, value, numberOfDelays++), 2000, id));
+            console.log(id);
+        }
+
+        function notifyDone(something, numberOfDelays) {
+            const results = document.getElementById("results");
+            const newElement = document.createElement("p");
+            newElement.innerHTML = `Something: <span>${something}</span>, Number of delays: <span>${numberOfDelays}</span>`;
+            results.appendChild(newElement);
+            // return something;
+        }
+        // When the page blurs / closing, call all registered functions
+        Delay.registerCallStackOnPageBlur();
+    </script>
+    <form>
+        <label>Example input</label>
+        <input oninput="onInputChange(this.value)" type="text"/>
+    </form>
+    <div id="results"></div>
+</body>
+</html>
