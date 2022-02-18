@@ -32,7 +32,7 @@ export class Delay {
         if(!promise) {
             promise = new Promise<T>((resolve, reject) => {
                 // This subscriber to override of the current id is used so the same promise resolved to the user on the first call
-                // will never resolve while the the functin continues to be overriden
+                // will never resolve while the the functin continues to be overridden
                 this.onOverride((overrideFunc, overrideMilsDelay) => {
                     // Set the function to the new function
                     this.functions.set(id, overrideFunc);
@@ -150,7 +150,7 @@ export class Delay {
      * Call all of the functions in the map
      */
     private static unloadProcedure(): void {
-        console.log("Unloading");
+        // console.log("Unloading");
         this.functions.forEach((func, id) => {
             func();
             window.clearTimeout(this.timeouts.get(id));
