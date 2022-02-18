@@ -6,8 +6,6 @@ export class Delay {
     private static timeouts: Map<number, number> = new Map();
     // Holds all of the functions to be called when the timeout end or the page blurs
     private static functions: Map<number, (...args: any) => any> = new Map();
-    // Holds all of the promises that are currently resolving
-    private static promises: Map<number, Promise<any>> = new Map();
     // Holds all of the override listeners for promises, so they know when to delay resolve
     private static overrideListeners: Map<number, (func: callFunc<any>, milsDelay: number) => any> = new Map();
 
@@ -20,35 +18,30 @@ export class Delay {
      * @param registerId a unique identifer for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
      * @returns An object holding the promise created, a re-usable function for the same operation and the id created for the operation
      */
-    public static callOnceReleased<T>(func: callFunc<T>, milsDelay: number, registerId?: number): {promise: Promise<any>, delay: (func: callFunc<T>, milsDelay: number) => ReuseCall<T>, id?: number} {
+    public static callOnceReleased<T>(func: callFunc<T>, milsDelay: number, registerId?: number): {delay: (func: callFunc<T>, milsDelay: number) => ReuseCall<T>, id?: number} {
         let id = registerId;
         // If the id exists, override the current function call and delay
         if (id && this.overrideListeners.has(id)) this.override(func, milsDelay, id);
-        // If the id does not exist, create it
-        else id = this.createRandomIdentifier();
-        // Find the promise that was created if it exists, so we can return it for the user for subscribing
-        let promise: Promise<any> = this.promises.get(id);
-        // If the promise does not exist, create and register it
-        if(!promise) {
-            promise = new Promise<T>((resolve, reject) => {
-                // This subscriber to override of the current id is used so the same promise resolved to the user on the first call
-                // will never resolve while the the functin continues to be overridden
-                this.onOverride((overrideFunc, overrideMilsDelay) => {
-                    // Set the function to the new function
-                    this.functions.set(id, overrideFunc);
-                    // Clear the timeout and create a new one
-                    window.clearTimeout(this.timeouts.get(id));
-                    this.timeouts.set(id, this.createTimeout(overrideFunc, overrideMilsDelay, resolve, reject, id));
-                }, id);
-                // Register the new function, for when we want to unload / blur the page
-                this.functions.set(id, func);
-                // Set the new timeout
-                this.timeouts.set(id, this.createTimeout(func, milsDelay, resolve, reject, id));
-            });
-            // Keep the promise for later fetching
-            this.promises.set(id, promise);
+        else id = this.createRandomIdentifier(); // If the id does not exist, create it
+        // If the override listener does not exist (first call) create it
+        if(!this.overrideListeners.has(id)) {
+            this.onOverride((overrideFunc, overrideMilsDelay) => {
+                // Set the function to the new function
+                this.functions.set(id, overrideFunc);
+                // Clear the timeout and create a new one
+                window.clearTimeout(this.timeouts.get(id));
+                this.timeouts.set(id, this.createTimeout(overrideFunc, overrideMilsDelay, id));
+            }, id);
+            // Register the new function, for when we want to unload / blur the page
+            this.functions.set(id, func);
+            // Set the new timeout
+            this.timeouts.set(id, this.createTimeout(func, milsDelay, id));
         }
-        return {promise, delay: ((func: (...args: any) => T, milsDelay: number) => this.callOnceReleased(func, milsDelay, id)).bind(id), id};
+        // Return the same delay function and the id
+        return {
+            delay: ((overrideFunc: callFunc<T>, overrideMilsDelay: number) => this.callOnceReleased(overrideFunc, overrideMilsDelay, id)).bind(id),
+            id
+        };
     }
 
     /**
@@ -61,7 +54,6 @@ export class Delay {
         if (clearTimeout) {
             window.clearTimeout(this.timeouts.get(id));
         }
-        this.promises.delete(id);
         this.timeouts.delete(id);
         this.overrideListeners.delete(id);
         this.functions.delete(id);
@@ -91,20 +83,19 @@ export class Delay {
      * Creates a timeout for the callback function, returns an id of the callback function
      * 
      * @param func The callback function to call once the delay has ended
-     * @param milsDelay The time to wait in miliseconds
-     * @param resolve A promise / callback function that accepts the callback function's value
-     * @param reject A promise / callback function that resolves an error
+     * @param milsDelay The time to wait in milliseconds
      * @param id The unique identifier for this operation
      * @returns The identifier of the createTimeout function
      */
-    private static createTimeout<T>(func: callFunc<T>, milsDelay: number, resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void, id: number): number {
+    private static createTimeout<T>(func: callFunc<T>, milsDelay: number, id: number): number {
         return window.setTimeout(() => {
             try {
-                resolve(func());
+                func();
+                this.purge(id);
             } catch(e) {
-                reject(e);
+                this.purge(id);
+                throw e;
             }
-            this.purge(id);
         }, milsDelay);
     }
 
@@ -150,14 +141,9 @@ export class Delay {
      * Call all of the functions in the map
      */
     private static unloadProcedure(): void {
-        // console.log("Unloading");
         this.functions.forEach((func, id) => {
             func();
-            window.clearTimeout(this.timeouts.get(id));
-            this.promises.delete(id);
-            this.timeouts.delete(id);
-            this.functions.delete(id);
-            this.overrideListeners.delete(id);
+            this.purge(id, true);
         });
     }
 }

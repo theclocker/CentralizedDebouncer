@@ -19,32 +19,27 @@ var Delay = /** @class */ (function () {
         // If the id exists, override the current function call and delay
         if (id && this.overrideListeners.has(id))
             this.override(func, milsDelay, id);
-        // If the id does not exist, create it
         else
-            id = this.createRandomIdentifier();
-        // Find the promise that was created if it exists, so we can return it for the user for subscribing
-        var promise = this.promises.get(id);
-        // If the promise does not exist, create and register it
-        if (!promise) {
-            promise = new Promise(function (resolve, reject) {
-                // This subscriber to override of the current id is used so the same promise resolved to the user on the first call
-                // will never resolve while the the functin continues to be overriden
-                _this.onOverride(function (overrideFunc, overrideMilsDelay) {
-                    // Set the function to the new function
-                    _this.functions.set(id, overrideFunc);
-                    // Clear the timeout and create a new one
-                    window.clearTimeout(_this.timeouts.get(id));
-                    _this.timeouts.set(id, _this.createTimeout(overrideFunc, overrideMilsDelay, resolve, reject, id));
-                }, id);
-                // Register the new function, for when we want to unload / blur the page
-                _this.functions.set(id, func);
-                // Set the new timeout
-                _this.timeouts.set(id, _this.createTimeout(func, milsDelay, resolve, reject, id));
-            });
-            // Keep the promise for later fetching
-            this.promises.set(id, promise);
+            id = this.createRandomIdentifier(); // If the id does not exist, create it
+        // If the override listener does not exist (first call) create it
+        if (!this.overrideListeners.has(id)) {
+            this.onOverride(function (overrideFunc, overrideMilsDelay) {
+                // Set the function to the new function
+                _this.functions.set(id, overrideFunc);
+                // Clear the timeout and create a new one
+                window.clearTimeout(_this.timeouts.get(id));
+                _this.timeouts.set(id, _this.createTimeout(overrideFunc, overrideMilsDelay, id));
+            }, id);
+            // Register the new function, for when we want to unload / blur the page
+            this.functions.set(id, func);
+            // Set the new timeout
+            this.timeouts.set(id, this.createTimeout(func, milsDelay, id));
         }
-        return { promise: promise, delay: (function (func, milsDelay) { return _this.callOnceReleased(func, milsDelay, id); }).bind(id), id: id };
+        // Return the same delay function and the id
+        return {
+            delay: (function (overrideFunc, overrideMilsDelay) { return _this.callOnceReleased(overrideFunc, overrideMilsDelay, id); }).bind(id),
+            id: id
+        };
     };
     /**
      * Remove the operation, and cancel it if you wish
@@ -57,7 +52,6 @@ var Delay = /** @class */ (function () {
         if (clearTimeout) {
             window.clearTimeout(this.timeouts.get(id));
         }
-        this.promises.delete(id);
         this.timeouts.delete(id);
         this.overrideListeners.delete(id);
         this.functions.delete(id);
@@ -84,22 +78,21 @@ var Delay = /** @class */ (function () {
      * Creates a timeout for the callback function, returns an id of the callback function
      *
      * @param func The callback function to call once the delay has ended
-     * @param milsDelay The time to wait in miliseconds
-     * @param resolve A promise / callback function that accepts the callback function's value
-     * @param reject A promise / callback function that resolves an error
+     * @param milsDelay The time to wait in milliseconds
      * @param id The unique identifier for this operation
      * @returns The identifier of the createTimeout function
      */
-    Delay.createTimeout = function (func, milsDelay, resolve, reject, id) {
+    Delay.createTimeout = function (func, milsDelay, id) {
         var _this = this;
         return window.setTimeout(function () {
             try {
-                resolve(func());
+                func();
+                _this.purge(id);
             }
             catch (e) {
-                reject(e);
+                _this.purge(id);
+                throw e;
             }
-            _this.purge(id);
         }, milsDelay);
     };
     /**
@@ -143,22 +136,15 @@ var Delay = /** @class */ (function () {
      */
     Delay.unloadProcedure = function () {
         var _this = this;
-        console.log("Unloading");
         this.functions.forEach(function (func, id) {
             func();
-            window.clearTimeout(_this.timeouts.get(id));
-            _this.promises.delete(id);
-            _this.timeouts.delete(id);
-            _this.functions.delete(id);
-            _this.overrideListeners.delete(id);
+            _this.purge(id, true);
         });
     };
     // Holds all of the timeouts currently happening
     Delay.timeouts = new Map();
     // Holds all of the functions to be called when the timeout end or the page blurs
     Delay.functions = new Map();
-    // Holds all of the promises that are currently resolving
-    Delay.promises = new Map();
     // Holds all of the override listeners for promises, so they know when to delay resolve
     Delay.overrideListeners = new Map();
     return Delay;

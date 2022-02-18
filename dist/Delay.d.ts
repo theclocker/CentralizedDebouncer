@@ -3,7 +3,6 @@ declare type ReuseCall<T> = [Promise<any>, (func: callFunc<T>, milsDelay: number
 export declare class Delay {
     private static timeouts;
     private static functions;
-    private static promises;
     private static overrideListeners;
     /**
      * A bulkified debouncer for calls
@@ -15,7 +14,6 @@ export declare class Delay {
      * @returns An object holding the promise created, a re-usable function for the same operation and the id created for the operation
      */
     static callOnceReleased<T>(func: callFunc<T>, milsDelay: number, registerId?: number): {
-        promise: Promise<any>;
         delay: (func: callFunc<T>, milsDelay: number) => ReuseCall<T>;
         id?: number;
     };
@@ -42,9 +40,7 @@ export declare class Delay {
      * Creates a timeout for the callback function, returns an id of the callback function
      *
      * @param func The callback function to call once the delay has ended
-     * @param milsDelay The time to wait in miliseconds
-     * @param resolve A promise / callback function that accepts the callback function's value
-     * @param reject A promise / callback function that resolves an error
+     * @param milsDelay The time to wait in milliseconds
      * @param id The unique identifier for this operation
      * @returns The identifier of the createTimeout function
      */
