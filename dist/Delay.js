@@ -10,7 +10,7 @@ var Delay = /** @class */ (function () {
      *
      * @param func the function to call after the timeout
      * @param milsDelay the delay for the timeout
-     * @param registerId a unique identifer for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
+     * @param registerId a unique identifier for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
      * @returns An object holding the promise created, a re-usable function for the same operation and the id created for the operation
      */
     Delay.callOnceReleased = function (func, milsDelay, registerId) {
@@ -19,7 +19,7 @@ var Delay = /** @class */ (function () {
         // If the id exists, override the current function call and delay
         if (id && this.overrideListeners.has(id))
             this.override(func, milsDelay, id);
-        else
+        else if (id == null)
             id = this.createRandomIdentifier(); // If the id does not exist, create it
         // If the override listener does not exist (first call) create it
         if (!this.functions.has(id)) {

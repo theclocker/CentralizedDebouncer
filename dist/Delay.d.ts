@@ -10,7 +10,7 @@ export declare class Delay {
      *
      * @param func the function to call after the timeout
      * @param milsDelay the delay for the timeout
-     * @param registerId a unique identifer for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
+     * @param registerId a unique identifier for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
      * @returns An object holding the promise created, a re-usable function for the same operation and the id created for the operation
      */
     static callOnceReleased<T>(func: callFunc<T>, milsDelay: number, registerId?: number): {

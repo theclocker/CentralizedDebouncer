@@ -15,14 +15,15 @@ export class Delay {
      * 
      * @param func the function to call after the timeout
      * @param milsDelay the delay for the timeout
-     * @param registerId a unique identifer for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
+     * @param registerId a unique identifier for the caller, will be automatically created when not provided, reuse the identifier for resetting the delay
      * @returns An object holding the promise created, a re-usable function for the same operation and the id created for the operation
      */
     public static callOnceReleased<T>(func: callFunc<T>, milsDelay: number, registerId?: number): {delay: (func: callFunc<T>, milsDelay: number) => ReuseCall<T>, id?: number} {
         let id = registerId;
         // If the id exists, override the current function call and delay
         if (id && this.overrideListeners.has(id)) this.override(func, milsDelay, id);
-        else id = this.createRandomIdentifier(); // If the id does not exist, create it
+        else if (id == null) id = this.createRandomIdentifier(); // If the id does not exist, create it
+        // ^ if the use entered a custom id that is the one that will be used
         // If the override listener does not exist (first call) create it
         if(!this.functions.has(id)) {
             this.onOverride((overrideFunc, overrideMilsDelay) => {
