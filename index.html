@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delayed</title>
-    <script src="./dist/Delay.js"></script>
+    <script src="./dist/web/bundle.js"></script>
 </head>
 <body>
     <h1>Example</h1>
@@ -13,7 +13,7 @@
         let numberOfDelays = 0;
         let promise, delay, id;
         function onInputChange(value) {
-            ({promise, delay, id} = Delay.callOnceReleased(notifyDone.bind(this, value, numberOfDelays++), 2000, id));
+            ({id} = Ontyme.Delay.callOnceReleased(notifyDone.bind(this, value, numberOfDelays++), 2000, id));
             console.log(id);
         }
 
@@ -25,7 +25,31 @@
             // return something;
         }
         // When the page blurs / closing, call all registered functions
-        Delay.registerCallStackOnPageBlur();
+        Ontyme.Delay.registerCallStackOnPageBlur();
+
+        const limiter = new Ontyme.Limiter(60, 6000);
+        const calls = new Array();
+        for(let i = 0; i < 120; i++) {
+            calls.push(setTimeout.bind(this,() => {console.log(123)}, 1));
+        }
+        let createdCalls = 0;
+        const min = 100;
+        const max = 2000;
+        const interval = setInterval(() => {
+            const randomTime = Math.floor(Math.random() * (max - min + 1) + min);
+            // console.log(randomTime);
+            if (++createdCalls === 10000) clearInterval(interval);
+            // console.log("Random time", randomTime);
+            limiter.push(console.log.bind(this, 123));
+            // setTimeout(((randomTime) => {
+            //     // console.log(randomTime);
+            //     limiter.push(console.log.bind(this, 123));
+            // }).bind(this, randomTime), randomTime);
+        }, 600);
+        console.log("pushed");
+        limiter.call(calls).then(resolve => {
+            console.log(resolve);
+        });
     </script>
     <form>
         <label>Example input</label>

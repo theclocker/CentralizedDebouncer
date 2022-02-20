@@ -3,13 +3,14 @@
         "lib": ["es5", "es2015.promise", "dom", "es2015"],
         "module": "CommonJS",
         "target": "es5",
-        "outDir": "./dist",
-        "declaration": true
-        // "emitDecoratorMetadata": true,
-        // "experimentalDecorators": true,
-        // "allowSyntheticDefaultImports": true,
-        // "declaration": false,
-        // "sourceMap": true
+        "declaration": true,
+        "noImplicitAny": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "outDir": "./dist/",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true
     },
     "include": [
         "src/**/*"

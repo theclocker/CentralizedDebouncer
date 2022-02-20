@@ -1,5 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/Delay.ts":
+/*!**********************!*\
+  !*** ./src/Delay.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Delay = void 0;
 var Delay = /** @class */ (function () {
     function Delay() {
@@ -21,6 +31,7 @@ var Delay = /** @class */ (function () {
             this.override(func, milsDelay, id);
         else if (id == null)
             id = this.createRandomIdentifier(); // If the id does not exist, create it
+        // ^ if the use entered a custom id that is the one that will be used
         // If the override listener does not exist (first call) create it
         if (!this.functions.has(id)) {
             this.onOverride(function (overrideFunc, overrideMilsDelay) {
@@ -151,3 +162,73 @@ var Delay = /** @class */ (function () {
     return Delay;
 }());
 exports.Delay = Delay;
+
+
+/***/ }),
+
+/***/ "./src/Limiter.ts":
+/*!************************!*\
+  !*** ./src/Limiter.ts ***!
+  \************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Limiter = void 0;
+var Limiter = /** @class */ (function () {
+    function Limiter() {
+    }
+    return Limiter;
+}());
+exports.Limiter = Limiter;
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+var exports = __webpack_exports__;
+/*!**********************!*\
+  !*** ./src/index.ts ***!
+  \**********************/
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Limiter = exports.Delay = void 0;
+var Delay_1 = __webpack_require__(/*! ./Delay */ "./src/Delay.ts");
+Object.defineProperty(exports, "Delay", ({ enumerable: true, get: function () { return Delay_1.Delay; } }));
+var Limiter_1 = __webpack_require__(/*! ./Limiter */ "./src/Limiter.ts");
+Object.defineProperty(exports, "Limiter", ({ enumerable: true, get: function () { return Limiter_1.Limiter; } }));
+
+})();
+
+/******/ })()
+;
+//# sourceMappingURL=index.js.map
