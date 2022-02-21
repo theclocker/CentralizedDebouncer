@@ -15,7 +15,6 @@ module.exports = {
     webpack_rules,
     webpack: ({
         entry: './src/index.ts',
-        devtool: 'source-map',
         module: {
             rules: Object.values(webpack_rules),
         },

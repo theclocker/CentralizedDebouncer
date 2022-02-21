@@ -27,29 +27,37 @@
         // When the page blurs / closing, call all registered functions
         Ontyme.Delay.registerCallStackOnPageBlur();
 
-        const limiter = new Ontyme.Limiter(60, 6000);
+        const limiter = new Ontyme.Limiter(10, 1000);
         const calls = new Array();
-        for(let i = 0; i < 120; i++) {
-            calls.push(setTimeout.bind(this,() => {console.log(123)}, 1));
-        }
+        // for(let i = 0; i < 120; i++) {
+        //     calls.push(setTimeout.bind(this,() => {console.log(123)}, 1));
+        // }
         let createdCalls = 0;
-        const min = 100;
-        const max = 2000;
-        const interval = setInterval(() => {
-            const randomTime = Math.floor(Math.random() * (max - min + 1) + min);
-            // console.log(randomTime);
-            if (++createdCalls === 10000) clearInterval(interval);
-            // console.log("Random time", randomTime);
-            limiter.push(console.log.bind(this, 123));
-            // setTimeout(((randomTime) => {
-            //     // console.log(randomTime);
-            //     limiter.push(console.log.bind(this, 123));
-            // }).bind(this, randomTime), randomTime);
-        }, 600);
+        const min = 10;
+        const max = 100;
+        let timeout;
+        recursivePush(min, max);
         console.log("pushed");
-        limiter.call(calls).then(resolve => {
+        limiter.make(calls).then(resolve => {
             console.log(resolve);
+            console.log(resolve.results.reduce((prev, curr) => prev + curr, 0))
+            clearTimeout(timeout);
         });
+
+        function recursivePush(min, max) {
+            const randomTime = Math.floor(Math.random() * (max - min + 1) + min);
+            timeout = setTimeout(((randomTime) => {
+                createdCalls++;
+                if (createdCalls > 500) {
+                    console.log("-------------------------------------- Reached END ----------------------------------------------");
+                    limiter.finish();
+                    clearTimeout(timeout);
+                    return;
+                }
+                limiter.push(() => randomTime);
+                recursivePush(min, max);
+            }).bind(this, randomTime), randomTime);
+        }
     </script>
     <form>
         <label>Example input</label>

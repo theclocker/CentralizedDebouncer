@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build:node": "webpack --config ./webpack.config.node.js --mode=development",
-    "build:web": "webpack --config ./webpack.config.web.js --mode=development"
+    "build:web": "webpack --config ./webpack.config.web.js --mode=production"
   },
   "author": "Jonathan Vega",
   "license": "ISC",

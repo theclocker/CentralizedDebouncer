@@ -3,6 +3,7 @@ const path = require('path');
 
 webpackConfig.webpack_rules.typescript.use.options.compilerOptions = {
   "outDir": "./dist/web",
+  "sourceMap": false
 };
 
 module.exports = Object.assign(webpackConfig.webpack, {
