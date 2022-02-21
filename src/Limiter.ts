@@ -135,7 +135,6 @@ export class Limiter {
       removed++;
       this.timestamps.dequeue();
     }
-    // console.log("removed", removed);
     return this.timestamps.length < this.numOfCalls;
   }
 
