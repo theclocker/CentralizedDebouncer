@@ -203,10 +203,232 @@ exports["default"] = LimiterFinishedError;
 
 /***/ }),
 
-/***/ "./src/Limiter.ts":
-/*!************************!*\
-  !*** ./src/Limiter.ts ***!
-  \************************/
+/***/ "./src/Errors/ManagedLimiterModeError.ts":
+/*!***********************************************!*\
+  !*** ./src/Errors/ManagedLimiterModeError.ts ***!
+  \***********************************************/
+/***/ (function(__unused_webpack_module, exports) {
+
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var ManagedLimiterModeError = /** @class */ (function (_super) {
+    __extends(ManagedLimiterModeError, _super);
+    function ManagedLimiterModeError() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return ManagedLimiterModeError;
+}(Error));
+exports["default"] = ManagedLimiterModeError;
+
+
+/***/ }),
+
+/***/ "./src/Limiter/ManagedLimiter.ts":
+/*!***************************************!*\
+  !*** ./src/Limiter/ManagedLimiter.ts ***!
+  \***************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+var __await = (this && this.__await) || function (v) { return this instanceof __await ? (this.v = v, this) : new __await(v); }
+var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _arguments, generator) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var g = generator.apply(thisArg, _arguments || []), i, q = [];
+    return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
+    function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+    function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+    function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+    function fulfill(value) { resume("next", value); }
+    function reject(value) { resume("throw", value); }
+    function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ManagedLimiter = void 0;
+var ManagedLimiterModeError_1 = __webpack_require__(/*! ../Errors/ManagedLimiterModeError */ "./src/Errors/ManagedLimiterModeError.ts");
+var Queue_1 = __webpack_require__(/*! ../Queue */ "./src/Queue.ts");
+/**
+ * A call limiter controlled by the user of the class
+ */
+var ManagedLimiter = /** @class */ (function () {
+    /**
+     * Create a new instance of the class and return it to the user
+     * @param funcs What to pre-populate the queue with
+     * @param async Whether or not the class is asynchronous
+     */
+    function ManagedLimiter(funcs, async) {
+        this.async = async;
+        /**
+         * Holds the queue of calls the user is preparing
+         */
+        this.callQueue = Queue_1.default.create();
+        this.callQueue.bulkEnqueue(funcs);
+    }
+    /**
+     * The entry point for the synchronous ManagedLimiter, all functions will be executed and their value will be returned
+     * @param funcs An array of functions
+     * @returns A ManagedLimiter
+     */
+    ManagedLimiter.makeSync = function (funcs) {
+        if (funcs === void 0) { funcs = []; }
+        return new ManagedLimiter(funcs, false);
+    };
+    /**
+     * The entry point for the asynchronous ManagedLimiter, all promises will be returned as a promise
+     * @param promises An array of promises to pre-populate the queue with
+     * @returns A ManagedLimiter
+     */
+    ManagedLimiter.makeAsync = function (promises) {
+        if (promises === void 0) { promises = []; }
+        return new ManagedLimiter(promises, true);
+    };
+    /**
+     * Calls the next function in the queue and returns its value
+     * @returns The value of the function from the queue, with the return type as indicated by the user
+     */
+    ManagedLimiter.prototype.next = function () {
+        if (this.async)
+            throw new ManagedLimiterModeError_1.default('Cant call next on a asynchronous limiter, use asyncNext() instead.');
+        if (this.isEmpty())
+            return;
+        return this.callQueue.dequeue()();
+    };
+    /**
+     * Runs through the queue using a generator, for when you want to loop through the values
+     */
+    ManagedLimiter.prototype.genNext = function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!!this.isEmpty()) return [3 /*break*/, 2];
+                    return [4 /*yield*/, this.callQueue.dequeue()()];
+                case 1:
+                    _a.sent();
+                    return [3 /*break*/, 0];
+                case 2: return [2 /*return*/];
+            }
+        });
+    };
+    /**
+     * Calls the next function asynchronously
+     * @returns The promise given by the user
+     */
+    ManagedLimiter.prototype.asyncNext = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                if (!this.async)
+                    throw new ManagedLimiterModeError_1.default('Cant call next on a synchronous limiter, use next() instead.');
+                if (this.isEmpty())
+                    return [2 /*return*/];
+                return [2 /*return*/, this.callQueue.dequeue()()];
+            });
+        });
+    };
+    /**
+     * Runs through the promises using a generator, for when you want to loop through all of the promises
+     */
+    ManagedLimiter.prototype.genAsyncNext = function () {
+        return __asyncGenerator(this, arguments, function genAsyncNext_1() {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!!this.isEmpty()) return [3 /*break*/, 3];
+                        return [4 /*yield*/, __await(this.callQueue.dequeue()())];
+                    case 1: return [4 /*yield*/, _a.sent()];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 0];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Add additional promises or functions to the call queue
+     * @param funcs An array of functions or promises
+     */
+    ManagedLimiter.prototype.push = function () {
+        var funcs = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            funcs[_i] = arguments[_i];
+        }
+        this.callQueue.bulkEnqueue(funcs);
+    };
+    /**
+     * Returns the size of the queue at this point in time
+     * @returns size of the queue
+     */
+    ManagedLimiter.prototype.size = function () {
+        return this.callQueue.length;
+    };
+    /**
+     * Returns true for when the queue is empty or false for when there are additional functions / promises in the queue
+     * @returns is the queue empty
+     */
+    ManagedLimiter.prototype.isEmpty = function () {
+        return this.callQueue.isEmpty();
+    };
+    return ManagedLimiter;
+}());
+exports.ManagedLimiter = ManagedLimiter;
+
+
+/***/ }),
+
+/***/ "./src/Limiter/TimeLimiter.ts":
+/*!************************************!*\
+  !*** ./src/Limiter/TimeLimiter.ts ***!
+  \************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -266,17 +488,24 @@ var __asyncGenerator = (this && this.__asyncGenerator) || function (thisArg, _ar
     function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Limiter = void 0;
-var Queue_1 = __webpack_require__(/*! ./Queue */ "./src/Queue.ts");
-var LimiterFinishedError_1 = __webpack_require__(/*! ./Errors/LimiterFinishedError */ "./src/Errors/LimiterFinishedError.ts");
-var Limiter = /** @class */ (function () {
+exports.TimeLimiter = void 0;
+var Queue_1 = __webpack_require__(/*! ../Queue */ "./src/Queue.ts");
+var LimiterFinishedError_1 = __webpack_require__(/*! ../Errors/LimiterFinishedError */ "./src/Errors/LimiterFinishedError.ts");
+/**
+ * This class will limit the number of calls you make by calculating the number of calls made in the time-frame provided
+ * The point of this class is to make as many calls as possible, clearing the queue as fast as the user is allowed to
+ * This is good when you have batches of calls you need to make and you do not want to spread them out
+ * For example if you have an api that accepts 60 calls per minute and you have 60 calls to make, there is no need to wait 1 second between
+ * each call, you can just exhaust your limits all at once
+ */
+var TimeLimiter = /** @class */ (function () {
     /**
      * Setup a rate limiter for making function calls using a time-frame and the number
      * of calls you can make in that time-frame
      * @param numOfCalls Number of calls you can make in time-frame
      * @param milsInterval The time-frame in milliseconds
      */
-    function Limiter(numOfCalls, milsInterval) {
+    function TimeLimiter(numOfCalls, milsInterval) {
         this.numOfCalls = numOfCalls;
         this.milsInterval = milsInterval;
         this.timestamps = Queue_1.default.create();
@@ -291,7 +520,7 @@ var Limiter = /** @class */ (function () {
      * @param funcs An array of functions to pass into the request queue
      * @returns A promise resolving the results of the limiter
      */
-    Limiter.prototype.make = function (funcs) {
+    TimeLimiter.prototype.make = function (funcs) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
@@ -319,27 +548,42 @@ var Limiter = /** @class */ (function () {
      * Push a function or an array of functions into the call queue of the limiter
      * @param funcs An array of functions or a single function
      */
-    Limiter.prototype.push = function (funcs) {
+    TimeLimiter.prototype.push = function () {
+        var funcs = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            funcs[_i] = arguments[_i];
+        }
         if (this.isFinished)
             throw new LimiterFinishedError_1.default("Cant push more functions to a limiter that is set to finished.");
-        if (funcs instanceof Array) {
-            this.requestQueue.bulkEnqueue(funcs);
+        this.requestQueue.bulkEnqueue(funcs);
+        !this.makingCalls && this.runThroughQueue();
+    };
+    /**
+     * Returns wether or not you can make a call, if nothing is passed, Date.now() will be used to calculate (preferred)
+     * @param timestamp a timestamp for when you want to calculate ahead of time
+     * @returns whether or not you can make a call for the timestamp or the Date.now() value
+     */
+    TimeLimiter.prototype.canMakeCall = function (timestamp) {
+        // Deals with permissions up to the number of calls
+        if (this.timestamps.length < this.numOfCalls)
+            return true;
+        // If the timestamp or time now - the mils interval is greater than the first call in the queue, you can make a call
+        var time = timestamp !== null && timestamp !== void 0 ? timestamp : Date.now() - this.milsInterval;
+        // While the queue is not empty and the first timestamp in the queue is smaller than the time function
+        while (!this.timestamps.isEmpty() && this.timestamps.peek() < time) {
+            this.timestamps.dequeue();
         }
-        else {
-            this.requestQueue.enqueue(funcs);
-        }
-        if (!this.makingCalls)
-            this.runThroughQueue();
+        return this.timestamps.length < this.numOfCalls;
     };
     /**
      * Mark the Limiter as finished, when the queue is done the results will be resolved
      */
-    Limiter.prototype.finish = function () {
+    TimeLimiter.prototype.finish = function () {
         this.finished = true;
         if (this.requestQueue.isEmpty && !this.makingCalls)
             this.queueDoneCallback();
     };
-    Object.defineProperty(Limiter.prototype, "isFinished", {
+    Object.defineProperty(TimeLimiter.prototype, "isFinished", {
         /**
          * Whether or not the limiter is done accepting calls
          */
@@ -353,13 +597,13 @@ var Limiter = /** @class */ (function () {
      * Register a callback for when the is queue done
      * @param call a callback function that fires when the queue is done
      */
-    Limiter.prototype.onQueueDone = function (call) {
+    TimeLimiter.prototype.onQueueDone = function (call) {
         this.queueDoneCallback = call;
     };
     /**
      * Call the makeCalls generator and mark the limiter's making calls parameter
      */
-    Limiter.prototype.runThroughQueue = function () {
+    TimeLimiter.prototype.runThroughQueue = function () {
         var e_1, _a;
         return __awaiter(this, void 0, void 0, function () {
             var _b, _c, result, e_1_1;
@@ -408,7 +652,7 @@ var Limiter = /** @class */ (function () {
     /**
      * A generator for calling the functions given to the queue
      */
-    Limiter.prototype.makeCalls = function () {
+    TimeLimiter.prototype.makeCalls = function () {
         return __asyncGenerator(this, arguments, function makeCalls_1() {
             var _this = this;
             return __generator(this, function (_a) {
@@ -423,7 +667,7 @@ var Limiter = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 0];
                     case 3: return [4 /*yield*/, __await(new Promise(function (resolve) {
-                            window.setTimeout(function () {
+                            setTimeout(function () {
                                 _this.timestamps.enqueue(Date.now());
                                 var func = _this.requestQueue.dequeue();
                                 var res = func();
@@ -446,38 +690,18 @@ var Limiter = /** @class */ (function () {
         });
     };
     /**
-     * Returns wether or not you can make a call, if nothing is passed, Date.now() will be used to calculate (preferred)
-     * @param timestamp a timestamp for when you want to calculate ahead of time
-     * @returns whether or not you can make a call for the timestamp or the Date.now() value
-     */
-    Limiter.prototype.canMakeCall = function (timestamp) {
-        // Deals with permissions up to the number of calls
-        if (this.timestamps.length < this.numOfCalls)
-            return true;
-        // If the timestamp or time now - the mils interval is greater than the first call in the queue, you can make a call
-        var time = timestamp !== null && timestamp !== void 0 ? timestamp : Date.now() - this.milsInterval;
-        var removed = 0;
-        while (this.timestamps.length > 0 && this.timestamps.peek() < time) {
-            removed++;
-            this.timestamps.dequeue();
-        }
-        // console.log("removed", removed);
-        return this.timestamps.length < this.numOfCalls;
-    };
-    /**
      * Returns the number of milliseconds to wait until you can make another call from the request queue
      * @param timestamp a timestamp to use for comparison, if not passed, Date.now() is used
      * @returns the milliseconds until the next call can be made
      */
-    Limiter.prototype.milsUntilNextCall = function (timestamp) {
+    TimeLimiter.prototype.milsUntilNextCall = function (timestamp) {
         // The interval - The difference between the timestamp / Date.now() and the oldest timestamp
         timestamp = timestamp !== null && timestamp !== void 0 ? timestamp : Date.now();
-        console.log("To wait", (this.milsInterval - (timestamp - this.timestamps.peek())));
         return this.milsInterval - (timestamp - this.timestamps.peek());
     };
-    return Limiter;
+    return TimeLimiter;
 }());
-exports.Limiter = Limiter;
+exports.TimeLimiter = TimeLimiter;
 
 
 /***/ }),
@@ -507,6 +731,10 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var Queue = /** @class */ (function (_super) {
     __extends(Queue, _super);
+    /**
+     * Use Queue.create to create a new queue that is extending an Array
+     * @param items Initial array items
+     */
     function Queue() {
         var items = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -575,11 +803,13 @@ var exports = __webpack_exports__;
   \**********************/
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Limiter = exports.Delay = void 0;
+exports.ManagedLimiter = exports.TimeLimiter = exports.Delay = void 0;
 var Delay_1 = __webpack_require__(/*! ./Delay */ "./src/Delay.ts");
 Object.defineProperty(exports, "Delay", ({ enumerable: true, get: function () { return Delay_1.Delay; } }));
-var Limiter_1 = __webpack_require__(/*! ./Limiter */ "./src/Limiter.ts");
-Object.defineProperty(exports, "Limiter", ({ enumerable: true, get: function () { return Limiter_1.Limiter; } }));
+var TimeLimiter_1 = __webpack_require__(/*! ./Limiter/TimeLimiter */ "./src/Limiter/TimeLimiter.ts");
+Object.defineProperty(exports, "TimeLimiter", ({ enumerable: true, get: function () { return TimeLimiter_1.TimeLimiter; } }));
+var ManagedLimiter_1 = __webpack_require__(/*! ./Limiter/ManagedLimiter */ "./src/Limiter/ManagedLimiter.ts");
+Object.defineProperty(exports, "ManagedLimiter", ({ enumerable: true, get: function () { return ManagedLimiter_1.ManagedLimiter; } }));
 
 })();
 

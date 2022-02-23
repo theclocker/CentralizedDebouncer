@@ -27,7 +27,7 @@
         // When the page blurs / closing, call all registered functions
         Ontyme.Delay.registerCallStackOnPageBlur();
 
-        const limiter = new Ontyme.Limiter(10, 1000);
+        const limiter = new Ontyme.TimeLimiter(10, 1000);
         const calls = new Array();
         // for(let i = 0; i < 120; i++) {
         //     calls.push(setTimeout.bind(this,() => {console.log(123)}, 1));
@@ -38,6 +38,7 @@
         let timeout;
         recursivePush(min, max);
         console.log("pushed");
+        // This will not resolve until the limiter is marked as finished by using the limiter.finish() function
         limiter.make(calls).then(resolve => {
             console.log(resolve);
             console.log(resolve.results.reduce((prev, curr) => prev + curr, 0))
@@ -58,11 +59,59 @@
                 recursivePush(min, max);
             }).bind(this, randomTime), randomTime);
         }
+
+        function updateNumOfCallsMade(called) {
+            const results = document.getElementById("managed-limiter-sync-results");
+            const newElement = document.createElement("div");
+            newElement.innerHTML = `Called function ${called}, using next()`;
+            results.appendChild(newElement);
+        }
+        const functionToCall = new Array();
+        for (let i = 0; i < 100; i++) {
+            functionToCall.push(updateNumOfCallsMade.bind(this, i));
+        }
+        const asyncFunctionToCall = new Array();
+        for (let i = 0; i < 5; i++) {
+            asyncFunctionToCall.push(() => new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve(`Called promise ${i}, using asyncNext()`);
+                }, 1000);
+            }));
+        }
+        const asyncManagedLimiter = Ontyme.ManagedLimiter.makeAsync(asyncFunctionToCall);
+        async function resolveAsyncCall() {
+            const results = document.getElementById("managed-limiter-async-results");
+            const newElement = document.createElement("div");
+            newElement.innerHTML = await asyncManagedLimiter.asyncNext();
+            results.appendChild(newElement);
+        }
+
+        async function resolveAsyncGenCalls() {
+            for await (let result of asyncManagedLimiter.genAsyncNext()) {
+                const results = document.getElementById("managed-limiter-async-gen-results");
+                const newElement = document.createElement("div");
+                newElement.innerHTML = result;
+                results.appendChild(newElement);
+            }
+        }
+        const syncManagedLimiter = Ontyme.ManagedLimiter.makeSync(functionToCall);
     </script>
     <form>
         <label>Example input</label>
         <input oninput="onInputChange(this.value)" type="text"/>
     </form>
+    <div id="managed-limiter-sync">
+        <button onclick="console.log(syncManagedLimiter.next())">Call next Sync call</button>
+        <div id="managed-limiter-sync-results"></div>
+    </div>
+    <div id="managed-limiter-async">
+        <button onclick="resolveAsyncCall()">Call next Async call</button>
+        <div id="managed-limiter-async-results"></div>
+    </div>
+    <div id="managed-limiter-async-gen">
+        <button onclick="resolveAsyncGenCalls()">Call async-gen</button>
+        <div id="managed-limiter-async-gen-results"></div>
+    </div>
     <div id="results"></div>
 </body>
 </html>

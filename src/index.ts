@@ -1,2 +1,3 @@
 export { Delay } from './Delay';
-export { Limiter } from './Limiter';
+export { TimeLimiter } from './Limiter/TimeLimiter';
+export { ManagedLimiter } from './Limiter/ManagedLimiter';

@@ -1,8 +1,15 @@
-import Queue from "./Queue";
-import LimiterFinishedError from './Errors/LimiterFinishedError';
+import Queue from "../Queue";
+import LimiterFinishedError from '../Errors/LimiterFinishedError';
 type AnyFunction = (...args: any) => any;
 
-export class Limiter {
+/**
+ * This class will limit the number of calls you make by calculating the number of calls made in the time-frame provided
+ * The point of this class is to make as many calls as possible, clearing the queue as fast as the user is allowed to
+ * This is good when you have batches of calls you need to make and you do not want to spread them out
+ * For example if you have an api that accepts 60 calls per minute and you have 60 calls to make, there is no need to wait 1 second between
+ * each call, you can just exhaust your limits all at once
+ */
+export class TimeLimiter {
   private timestamps: Queue<number> = Queue.create();
   private requestQueue: Queue<(...args: any) => any> = Queue.create();
   private results: Array<any> = new Array();
@@ -49,14 +56,27 @@ export class Limiter {
    * Push a function or an array of functions into the call queue of the limiter
    * @param funcs An array of functions or a single function
    */
-  public push(funcs: Array<AnyFunction> | AnyFunction): void {
+  public push(...funcs: Array<AnyFunction>): void {
     if (this.isFinished) throw new LimiterFinishedError("Cant push more functions to a limiter that is set to finished.");
-    if (funcs instanceof Array) {
-      this.requestQueue.bulkEnqueue(funcs);
-    } else {
-      this.requestQueue.enqueue(funcs);
+    this.requestQueue.bulkEnqueue(funcs);
+    !this.makingCalls && this.runThroughQueue();
+  }
+
+  /**
+   * Returns wether or not you can make a call, if nothing is passed, Date.now() will be used to calculate (preferred)
+   * @param timestamp a timestamp for when you want to calculate ahead of time
+   * @returns whether or not you can make a call for the timestamp or the Date.now() value
+   */
+  public canMakeCall(timestamp?: number): boolean {
+    // Deals with permissions up to the number of calls
+    if (this.timestamps.length < this.numOfCalls) return true;
+    // If the timestamp or time now - the mils interval is greater than the first call in the queue, you can make a call
+    const time = timestamp ?? Date.now() - this.milsInterval;
+    // While the queue is not empty and the first timestamp in the queue is smaller than the time function
+    while (!this.timestamps.isEmpty() && this.timestamps.peek() < time) {
+      this.timestamps.dequeue();
     }
-    if (!this.makingCalls) this.runThroughQueue();
+    return this.timestamps.length < this.numOfCalls;
   }
 
   /**
@@ -110,7 +130,7 @@ export class Limiter {
         // If cant make call, start an interval until time clears
         // This will not wait for functions that are promises them-selves
         yield await new Promise(resolve => {
-          window.setTimeout(() => {
+          setTimeout(() => {
             this.timestamps.enqueue(Date.now());
             const func = this.requestQueue.dequeue();
             const res = func();
@@ -121,24 +141,6 @@ export class Limiter {
   }
 
   /**
-   * Returns wether or not you can make a call, if nothing is passed, Date.now() will be used to calculate (preferred)
-   * @param timestamp a timestamp for when you want to calculate ahead of time
-   * @returns whether or not you can make a call for the timestamp or the Date.now() value
-   */
-  public canMakeCall(timestamp?: number): boolean {
-    // Deals with permissions up to the number of calls
-    if (this.timestamps.length < this.numOfCalls) return true;
-    // If the timestamp or time now - the mils interval is greater than the first call in the queue, you can make a call
-    const time = timestamp ?? Date.now() - this.milsInterval;
-    let removed = 0;
-    while (this.timestamps.length > 0 && this.timestamps.peek() < time) {
-      removed++;
-      this.timestamps.dequeue();
-    }
-    return this.timestamps.length < this.numOfCalls;
-  }
-
-  /**
    * Returns the number of milliseconds to wait until you can make another call from the request queue
    * @param timestamp a timestamp to use for comparison, if not passed, Date.now() is used
    * @returns the milliseconds until the next call can be made
@@ -146,7 +148,6 @@ export class Limiter {
   private milsUntilNextCall(timestamp?: number): number {
     // The interval - The difference between the timestamp / Date.now() and the oldest timestamp
     timestamp = timestamp ?? Date.now();
-    console.log("To wait", (this.milsInterval - (timestamp - this.timestamps.peek())));
     return this.milsInterval - (timestamp - this.timestamps.peek());
   }
 }
