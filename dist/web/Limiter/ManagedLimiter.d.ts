@@ -1,4 +1,4 @@
-declare type QueueFunction<T> = (...args: any) => T;
+import { AnyFunction } from '../Types';
 /**
  * A call limiter controlled by the user of the class
  */
@@ -13,19 +13,19 @@ export declare class ManagedLimiter<FuncsT> {
      * @param funcs An array of functions
      * @returns A ManagedLimiter
      */
-    static makeSync<FuncsT>(funcs?: Array<QueueFunction<FuncsT>>): ManagedLimiter<FuncsT>;
+    static makeSync<FuncsT>(funcs?: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>>): ManagedLimiter<FuncsT>;
     /**
      * The entry point for the asynchronous ManagedLimiter, all promises will be returned as a promise
      * @param promises An array of promises to pre-populate the queue with
      * @returns A ManagedLimiter
      */
-    static makeAsync<FuncsT>(promises?: Array<QueueFunction<Promise<FuncsT>>>): ManagedLimiter<FuncsT>;
+    static makeAsync<FuncsT>(promises?: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>>): ManagedLimiter<FuncsT>;
     /**
      * Create a new instance of the class and return it to the user
      * @param funcs What to pre-populate the queue with
      * @param async Whether or not the class is asynchronous
      */
-    protected constructor(funcs: Array<QueueFunction<FuncsT | Promise<FuncsT>>>, async?: boolean);
+    protected constructor(funcs: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>>, async?: boolean);
     /**
      * Calls the next function in the queue and returns its value
      * @returns The value of the function from the queue, with the return type as indicated by the user
@@ -48,7 +48,7 @@ export declare class ManagedLimiter<FuncsT> {
      * Add additional promises or functions to the call queue
      * @param funcs An array of functions or promises
      */
-    push(...funcs: Array<QueueFunction<FuncsT> | (() => Promise<FuncsT>)>): void;
+    push(...funcs: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>>): void;
     /**
      * Returns the size of the queue at this point in time
      * @returns size of the queue
@@ -60,4 +60,3 @@ export declare class ManagedLimiter<FuncsT> {
      */
     isEmpty(): boolean;
 }
-export {};

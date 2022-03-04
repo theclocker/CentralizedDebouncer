@@ -1,6 +1,6 @@
 import ManagedLimiterModeError from "../Errors/ManagedLimiterModeError";
 import Queue from "../Queue";
-type QueueFunction<T> = (...args: any) => T
+import { AnyFunction } from '../Types';
 
 /**
  * A call limiter controlled by the user of the class
@@ -10,14 +10,14 @@ export class ManagedLimiter<FuncsT> {
   /**
    * Holds the queue of calls the user is preparing
    */
-  private callQueue: Queue<QueueFunction<FuncsT | Promise<FuncsT>>> = Queue.create();
+  private callQueue: Queue<AnyFunction<any, FuncsT | Promise<FuncsT>>> = Queue.create();
 
   /**
    * The entry point for the synchronous ManagedLimiter, all functions will be executed and their value will be returned
    * @param funcs An array of functions
    * @returns A ManagedLimiter
    */
-  public static makeSync<FuncsT>(funcs: Array<QueueFunction<FuncsT>> = []): ManagedLimiter<FuncsT> {
+  public static makeSync<FuncsT>(funcs: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>> = []): ManagedLimiter<FuncsT> {
     return new ManagedLimiter(funcs, false);
   }
 
@@ -26,7 +26,7 @@ export class ManagedLimiter<FuncsT> {
    * @param promises An array of promises to pre-populate the queue with
    * @returns A ManagedLimiter
    */
-  public static makeAsync<FuncsT>(promises: Array<QueueFunction<Promise<FuncsT>>> = []): ManagedLimiter<FuncsT> {
+  public static makeAsync<FuncsT>(promises: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>> = []): ManagedLimiter<FuncsT> {
     return new ManagedLimiter(promises, true);
   }
 
@@ -35,7 +35,7 @@ export class ManagedLimiter<FuncsT> {
    * @param funcs What to pre-populate the queue with
    * @param async Whether or not the class is asynchronous
    */
-  protected constructor(funcs: Array<QueueFunction<FuncsT | Promise<FuncsT>>>, private async?: boolean) {
+  protected constructor(funcs: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>>, private async?: boolean) {
     this.callQueue.bulkEnqueue(funcs);
   }
 
@@ -46,7 +46,7 @@ export class ManagedLimiter<FuncsT> {
   public next(): FuncsT {
     if (this.async) throw new ManagedLimiterModeError('Cant call next on a asynchronous limiter, use asyncNext() instead.');
     if (this.isEmpty()) return;
-    return (this.callQueue.dequeue() as QueueFunction<FuncsT>)();
+    return (this.callQueue.dequeue() as AnyFunction<any, FuncsT>)();
   }
 
   /**
@@ -54,7 +54,7 @@ export class ManagedLimiter<FuncsT> {
    */
   public *genNext(): Generator<FuncsT, any, any> {
     while (!this.isEmpty()) {
-      yield (this.callQueue.dequeue() as QueueFunction<FuncsT>)();
+      yield (this.callQueue.dequeue() as AnyFunction<any, FuncsT>)();
     }
   }
 
@@ -65,7 +65,7 @@ export class ManagedLimiter<FuncsT> {
   public async asyncNext(): Promise<FuncsT> {
     if (!this.async) throw new ManagedLimiterModeError('Cant call next on a synchronous limiter, use next() instead.');
     if (this.isEmpty()) return;
-    return (this.callQueue.dequeue() as QueueFunction<Promise<FuncsT>>)();
+    return (this.callQueue.dequeue() as AnyFunction<any, Promise<FuncsT>>)();
   }
 
   /**
@@ -73,7 +73,7 @@ export class ManagedLimiter<FuncsT> {
    */
   public async *genAsyncNext(): AsyncGenerator<FuncsT, any, any> {
     while (!this.isEmpty()) {
-      yield (this.callQueue.dequeue() as QueueFunction<Promise<FuncsT>>)();
+      yield (this.callQueue.dequeue() as AnyFunction<any, Promise<FuncsT>>)();
     }
   }
 
@@ -81,7 +81,7 @@ export class ManagedLimiter<FuncsT> {
    * Add additional promises or functions to the call queue
    * @param funcs An array of functions or promises
    */
-  public push(...funcs: Array<QueueFunction<FuncsT> | (() => Promise<FuncsT>)>): void {
+  public push(...funcs: Array<AnyFunction<any, FuncsT | Promise<FuncsT>>>): void {
     this.callQueue.bulkEnqueue(funcs);
   }
 

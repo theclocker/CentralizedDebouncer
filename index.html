@@ -11,7 +11,7 @@
     <h1>Example</h1>
     <script>
         let numberOfDelays = 0;
-        let promise, delay, id;
+        let delay, id;
         function onInputChange(value) {
             ({id} = Ontyme.Delay.callOnceReleased(notifyDone.bind(this, value, numberOfDelays++), 2000, id));
             console.log(id);
@@ -79,20 +79,33 @@
             }));
         }
         const asyncManagedLimiter = Ontyme.ManagedLimiter.makeAsync(asyncFunctionToCall);
-        async function resolveAsyncCall() {
+        async function resolveAsyncCall(event) {
+            event.target.disabled = 1;
             const results = document.getElementById("managed-limiter-async-results");
             const newElement = document.createElement("div");
             newElement.innerHTML = await asyncManagedLimiter.asyncNext();
             results.appendChild(newElement);
+            event.target.disabled = 0;
         }
 
-        async function resolveAsyncGenCalls() {
-            for await (let result of asyncManagedLimiter.genAsyncNext()) {
+        const asyncGenFunctionToCall = new Array();
+        for (let i = 0; i < 10; i++) {
+            asyncGenFunctionToCall.push(() => new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve(`Called promise ${i}, using genAsyncNext()`);
+                }, 1000);
+            }));
+        }
+        const asyncGenManagedLimiter = Ontyme.ManagedLimiter.makeAsync(asyncGenFunctionToCall);
+        async function resolveAsyncGenCalls(event) {
+            event.target.disabled = 1;
+            for await (let result of asyncGenManagedLimiter.genAsyncNext()) {
                 const results = document.getElementById("managed-limiter-async-gen-results");
                 const newElement = document.createElement("div");
                 newElement.innerHTML = result;
                 results.appendChild(newElement);
             }
+            event.target.disabled = 0;
         }
         const syncManagedLimiter = Ontyme.ManagedLimiter.makeSync(functionToCall);
     </script>
@@ -105,11 +118,11 @@
         <div id="managed-limiter-sync-results"></div>
     </div>
     <div id="managed-limiter-async">
-        <button onclick="resolveAsyncCall()">Call next Async call</button>
+        <button onclick="resolveAsyncCall(event)">Call next Async call</button>
         <div id="managed-limiter-async-results"></div>
     </div>
     <div id="managed-limiter-async-gen">
-        <button onclick="resolveAsyncGenCalls()">Call async-gen</button>
+        <button onclick="resolveAsyncGenCalls(event)">Call async-gen</button>
         <div id="managed-limiter-async-gen-results"></div>
     </div>
     <div id="results"></div>

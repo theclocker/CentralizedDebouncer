@@ -1,6 +1,6 @@
 import Queue from "../Queue";
 import LimiterFinishedError from '../Errors/LimiterFinishedError';
-type AnyFunction = (...args: any) => any;
+import { AnyFunction } from '../Types';
 
 /**
  * This class will limit the number of calls you make by calculating the number of calls made in the time-frame provided
@@ -11,7 +11,7 @@ type AnyFunction = (...args: any) => any;
  */
 export class TimeLimiter {
   private timestamps: Queue<number> = Queue.create();
-  private requestQueue: Queue<(...args: any) => any> = Queue.create();
+  private requestQueue: Queue<AnyFunction<any, any>> = Queue.create();
   private results: Array<any> = new Array();
   private finished: boolean = false;
   private makingCalls: boolean = false;
@@ -31,7 +31,7 @@ export class TimeLimiter {
    * @param funcs An array of functions to pass into the request queue
    * @returns A promise resolving the results of the limiter
    */
-  public async make(funcs: Array<AnyFunction>): Promise<any> {
+  public async make(funcs: Array<AnyFunction<any, any>>): Promise<any> {
     this.requestQueue.bulkEnqueue(funcs);
     // Make all of the calls until the queue is done (generator is finished)
     this.timeTook = Date.now();
@@ -56,7 +56,7 @@ export class TimeLimiter {
    * Push a function or an array of functions into the call queue of the limiter
    * @param funcs An array of functions or a single function
    */
-  public push(...funcs: Array<AnyFunction>): void {
+  public push(...funcs: Array<AnyFunction<any, any>>): void {
     if (this.isFinished) throw new LimiterFinishedError("Cant push more functions to a limiter that is set to finished.");
     this.requestQueue.bulkEnqueue(funcs);
     !this.makingCalls && this.runThroughQueue();

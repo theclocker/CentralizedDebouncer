@@ -1,4 +1,4 @@
-declare type AnyFunction = (...args: any) => any;
+import { AnyFunction } from '../Types';
 /**
  * This class will limit the number of calls you make by calculating the number of calls made in the time-frame provided
  * The point of this class is to make as many calls as possible, clearing the queue as fast as the user is allowed to
@@ -28,12 +28,12 @@ export declare class TimeLimiter {
      * @param funcs An array of functions to pass into the request queue
      * @returns A promise resolving the results of the limiter
      */
-    make(funcs: Array<AnyFunction>): Promise<any>;
+    make(funcs: Array<AnyFunction<any, any>>): Promise<any>;
     /**
      * Push a function or an array of functions into the call queue of the limiter
      * @param funcs An array of functions or a single function
      */
-    push(...funcs: Array<AnyFunction>): void;
+    push(...funcs: Array<AnyFunction<any, any>>): void;
     /**
      * Returns wether or not you can make a call, if nothing is passed, Date.now() will be used to calculate (preferred)
      * @param timestamp a timestamp for when you want to calculate ahead of time
@@ -68,4 +68,3 @@ export declare class TimeLimiter {
      */
     private milsUntilNextCall;
 }
-export {};
