@@ -23,7 +23,7 @@ export class Delay {
         // If the id exists, override the current function call and delay
         if (id && this.overrideListeners.has(id)) this.override(func, milsDelay, id);
         else if (id == null) id = this.createRandomIdentifier(); // If the id does not exist, create it
-        // ^ if the use entered a custom id that is the one that will be used
+        // ^ if the user entered a custom id that is the one that will be used
         // If the override listener does not exist (first call) create it
         if(!this.functions.has(id)) {
             this.onOverride((overrideFunc, overrideMilsDelay) => {
